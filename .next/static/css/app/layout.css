@@ -1002,9 +1002,6 @@ video {
 .w-5 {
   width: 1.25rem;
 }
-.w-6 {
-  width: 1.5rem;
-}
 .w-64 {
   width: 16rem;
 }
@@ -1460,6 +1457,9 @@ video {
 }
 .fill-current {
   fill: currentColor;
+}
+.object-cover {
+  object-fit: cover;
 }
 .p-0 {
   padding: 0px;

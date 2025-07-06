@@ -4,7 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
-import { Bot, FileText, User, Building2, Menu } from "lucide-react"
+import { Bot, FileText, User, Menu } from "lucide-react"
+import Image from "next/image"
 
 const navigation = [
   { name: "Hugo", href: "/hugo", icon: Bot },
@@ -24,7 +25,7 @@ export function Sidebar() {
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-2">
-              <Building2 className="h-8 w-8 text-blue-600" />
+              <Image src="/images/hugo.jpg" alt="SF Logo" width={32} height={32} className="rounded-full" />
               <h1 className="text-xl font-bold text-gray-900">Permit Tracker</h1>
             </div>
           )}

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Send, Bot, User } from "lucide-react"
+import Image from "next/image"
 
 interface Message {
   id: string
@@ -55,8 +56,14 @@ export default function HugoPage() {
     <div className="h-full flex flex-col">
       <div className="bg-white border-b border-gray-200 p-6">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-full">
-            <Bot className="h-6 w-6 text-blue-600" />
+          <div className="w-10 h-10 rounded-full overflow-hidden">
+            <Image
+              src="/images/hugo.jpg"
+              alt="Hugo"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Hugo</h1>
