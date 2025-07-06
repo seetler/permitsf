@@ -1,5 +1,3 @@
 {
-  "/hugo/page": "app/hugo/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
   "/permits/page": "app/permits/page.js"
 }

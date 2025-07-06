@@ -7,9 +7,11 @@ import { Sidebar } from "@/components/sidebar"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Permit Tracker",
-  description: "Track and manage your permits with AI assistance",
-    generator: 'v0.dev'
+  title: "PermitSF",
+  description: "Track and manage your San Francisco permits",
+  icons: {
+    icon: "/favicon.ico",
+  },
 }
 
 export default function RootLayout({
