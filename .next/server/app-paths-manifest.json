@@ -1,6 +1,4 @@
 {
-  "/hugo/page": "app/hugo/page.js",
-  "/permits/page": "app/permits/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/hugo/page": "app/hugo/page.js"
 }
