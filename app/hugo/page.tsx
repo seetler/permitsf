@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
-import { Send, Bot, User } from "lucide-react"
+import { Send, Bot, User, Loader2 } from "lucide-react"
 import Image from "next/image"
 
 interface Message {
@@ -25,30 +25,53 @@ export default function HugoPage() {
     },
   ])
   const [inputValue, setInputValue] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return
+  const handleSendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
       sender: "user",
       timestamp: new Date(),
     }
 
-    setMessages((prev) => [...prev, newMessage])
+    setMessages((prev) => [...prev, userMessage])
+    const currentInput = inputValue
     setInputValue("")
+    setIsLoading(true)
 
-    // Simulate Hugo's response
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: currentInput,
+          history: messages.slice(1), // Skip the initial greeting
+        }),
+      })
+
+      const data = await response.json()
+
       const hugoResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "We are looking forward to working with you.",
+        content: data.error ? `Error: ${data.error}` : data.reply,
         sender: "hugo",
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, hugoResponse])
-    }, 1000)
+    } catch (error) {
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm sorry, something went wrong. Please try again.",
+        sender: "hugo",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorResponse])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -109,8 +132,8 @@ export default function HugoPage() {
               onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
               className="flex-1"
             />
-            <Button onClick={handleSendMessage} className="px-6">
-              <Send className="h-4 w-4" />
+            <Button onClick={handleSendMessage} className="px-6" disabled={isLoading}>
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
