@@ -43,8 +43,7 @@ export default function HugoPage() {
     setTimeout(() => {
       const hugoResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content:
-          "I understand you're looking for permit information. Based on what you've described, you might need several permits. Let me help you identify the specific requirements for your project.",
+        content: "We are looking forward to working with you.",
         sender: "hugo",
         timestamp: new Date(),
       }
