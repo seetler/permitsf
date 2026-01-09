@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
-import { Bot, FileText, User, Menu, LogOut } from "lucide-react"
+import { Bot, FileText, User, Menu, LogOut, X } from "lucide-react"
 import Image from "next/image"
 import { useUser, useClerk } from "@clerk/nextjs"
 
@@ -16,6 +16,7 @@ const navigation = [
 export function Sidebar() {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
   const { user, isSignedIn } = useUser()
   const { signOut } = useClerk()
 
@@ -27,9 +28,34 @@ export function Sidebar() {
   }
 
   return (
-    <div
-      className={`${isCollapsed ? "w-12" : "w-64"} bg-white shadow-sm border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col`}
-    >
+    <>
+      {/* Mobile menu button - only visible on small screens */}
+      <button
+        onClick={() => setIsMobileOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-40 p-2 bg-white rounded-md shadow-md border border-gray-200"
+      >
+        <Menu className="h-5 w-5 text-gray-600" />
+      </button>
+
+      {/* Mobile backdrop */}
+      {isMobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={cn(
+          "bg-white shadow-sm border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col",
+          // Mobile: fixed overlay
+          "fixed md:relative inset-y-0 left-0 z-50",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          // Desktop: collapsible width
+          isCollapsed ? "md:w-12" : "w-64"
+        )}
+      >
       <div className={`p-6 ${isCollapsed ? "px-2 py-3" : ""}`}>
         <div className="flex items-center justify-between">
           {!isCollapsed && (
@@ -38,16 +64,27 @@ export function Sidebar() {
               <h1 className="text-xl font-bold text-gray-900">Permit Tracker</h1>
             </div>
           )}
+          {/* Mobile: X to close, Desktop: Menu to collapse */}
           <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            onClick={() => {
+              if (isMobileOpen) {
+                setIsMobileOpen(false)
+              } else {
+                setIsCollapsed(!isCollapsed)
+              }
+            }}
             className={`p-1 rounded-md hover:bg-gray-100 transition-colors ${isCollapsed ? "mx-auto" : ""}`}
           >
-            <Menu className="h-5 w-5 text-gray-600" />
+            {isMobileOpen ? (
+              <X className="h-5 w-5 text-gray-600" />
+            ) : (
+              <Menu className="h-5 w-5 text-gray-600" />
+            )}
           </button>
         </div>
       </div>
 
-      {!isCollapsed && (
+      {(!isCollapsed || isMobileOpen) && (
         <nav className="mt-8 px-4 flex-1">
           <ul className="space-y-2">
             {navigation.map((item) => {
@@ -56,6 +93,7 @@ export function Sidebar() {
                 <li key={item.name}>
                   <Link
                     href={item.href}
+                    onClick={() => setIsMobileOpen(false)}
                     className={cn(
                       "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                       isActive
@@ -74,12 +112,13 @@ export function Sidebar() {
       )}
 
       {/* User Profile Section */}
-      {!isCollapsed && (
+      {(!isCollapsed || isMobileOpen) && (
         <div className="p-4 border-t border-gray-200">
           {isSignedIn ? (
             <div className="space-y-2">
               <Link
                 href="/profile"
+                onClick={() => setIsMobileOpen(false)}
                 className={cn(
                   "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                   pathname === "/profile"
@@ -93,7 +132,10 @@ export function Sidebar() {
                 <span>{user?.firstName || user?.username || "My Profile"}</span>
               </Link>
               <button
-                onClick={() => signOut()}
+                onClick={() => {
+                  signOut()
+                  setIsMobileOpen(false)
+                }}
                 className="flex items-center w-full px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
               >
                 <LogOut className="mr-3 h-4 w-4" />
@@ -103,6 +145,7 @@ export function Sidebar() {
           ) : (
             <Link
               href="/sign-in"
+              onClick={() => setIsMobileOpen(false)}
               className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
             >
               <User className="mr-3 h-5 w-5" />
@@ -112,9 +155,9 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* Collapsed state user icon */}
-      {isCollapsed && (
-        <div className="p-2 border-t border-gray-200">
+      {/* Collapsed state user icon - desktop only */}
+      {isCollapsed && !isMobileOpen && (
+        <div className="hidden md:block p-2 border-t border-gray-200">
           {isSignedIn ? (
             <Link href="/profile" className="block mx-auto">
               <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold hover:bg-blue-700 transition-colors">
@@ -128,6 +171,7 @@ export function Sidebar() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
