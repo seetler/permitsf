@@ -1,15 +1,29 @@
-import { auth } from "@clerk/nextjs/server"
-import { redirect } from "next/navigation"
+"use client"
 
-export default async function ProfileLayout({
+import { useAuth } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+
+export default function ProfileLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { userId } = await auth()
+  const { isLoaded, isSignedIn } = useAuth()
+  const router = useRouter()
 
-  if (!userId) {
-    redirect("/sign-in")
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push("/sign-in")
+    }
+  }, [isLoaded, isSignedIn, router])
+
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center h-full">Loading...</div>
+  }
+
+  if (!isSignedIn) {
+    return null
   }
 
   return <>{children}</>
