@@ -1,38 +1,9 @@
-/**
- * Chat API Route - Hugo AI Assistant Backend
- *
- * This endpoint handles chat messages for the Hugo AI assistant.
- * It proxies requests to the Anthropic Claude API and returns
- * AI-generated responses about San Francisco permit requirements.
- *
- * Endpoint: POST /api/chat
- * Auth Required: No (public endpoint)
- *
- * Request Body:
- * {
- *   message: string,      // User's current message
- *   history: Message[]    // Previous messages in conversation
- * }
- *
- * Response:
- * { reply: string }       // Hugo's response
- * or
- * { error: string }       // Error message (status 500)
- *
- * Environment Variables Required:
- * - ANTHROPIC_API_KEY: API key for Claude
- */
-
+// POST /api/chat - Claude API endpoint for Hugo assistant
 import Anthropic from "@anthropic-ai/sdk"
 import { NextRequest, NextResponse } from "next/server"
 
-// Initialize Anthropic client (uses ANTHROPIC_API_KEY env var)
 const client = new Anthropic()
 
-/**
- * System prompt that defines Hugo's personality and behavior.
- * Includes a curated list of SF.gov URLs for accurate linking.
- */
 const SYSTEM_PROMPT = `You are Hugo, a friendly AI permit assistant for San Francisco. Your role is to help users find the right city resources for their permit needs.
 
 IMPORTANT: Always direct users to official SF.gov resources. Provide relevant links from the SF.gov sitemap below whenever possible. Your job is to guide users to the right city department, NOT to provide detailed permit information yourself.
@@ -84,17 +55,9 @@ You should NOT:
 
 Always end responses with a relevant link. If unsure which department, direct to SF 311: https://sfgov.org/sf311`
 
-/**
- * POST handler for chat messages
- * Sends user message + history to Claude and returns the response
- */
 export async function POST(request: NextRequest) {
   try {
-    // Parse request body
     const { message, history } = await request.json()
-
-    // Build messages array for Claude API
-    // Convert our message format to Anthropic's format
     const messages = [
       ...history.map((msg: { sender: string; content: string }) => ({
         role: msg.sender === "user" ? "user" : "assistant",
@@ -103,7 +66,6 @@ export async function POST(request: NextRequest) {
       { role: "user", content: message },
     ]
 
-    // Call Claude API
     const response = await client.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,
@@ -111,21 +73,13 @@ export async function POST(request: NextRequest) {
       messages: messages as Anthropic.MessageParam[],
     })
 
-    // Extract text content from response
-    // Claude can return multiple content blocks; we want the text one
     const textContent = response.content.find((block) => block.type === "text")
-    const reply = textContent && "text" in textContent
-      ? textContent.text
-      : "I'm sorry, I couldn't generate a response."
+    const reply = textContent && "text" in textContent ? textContent.text : "I'm sorry, I couldn't generate a response."
 
     return NextResponse.json({ reply })
   } catch (error: unknown) {
-    // Log error for debugging and return user-friendly message
     console.error("Error calling Claude:", error)
     const errorMessage = error instanceof Error ? error.message : "Failed to get response from AI"
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
 }
