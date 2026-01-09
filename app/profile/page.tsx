@@ -34,7 +34,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 pt-16 md:pt-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
         <p className="text-gray-600 mt-2">Manage your personal and business information</p>

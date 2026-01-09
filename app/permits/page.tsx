@@ -56,7 +56,7 @@ function getStatusColor(status: string) {
 
 export default function PermitsPage() {
   return (
-    <div className="p-6">
+    <div className="p-6 pt-16 md:pt-6">
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
