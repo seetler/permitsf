@@ -1,6 +1,6 @@
-// POST /api/chat - Claude API endpoint for Hugo assistant
+// POST /api/chat - Streaming Claude API endpoint for Hugo assistant
 import Anthropic from "@anthropic-ai/sdk"
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 
 const client = new Anthropic()
 
@@ -56,30 +56,39 @@ You should NOT:
 Always end responses with a relevant link. If unsure which department, direct to SF 311: https://sfgov.org/sf311`
 
 export async function POST(request: NextRequest) {
-  try {
-    const { message, history } = await request.json()
-    const messages = [
-      ...history.map((msg: { sender: string; content: string }) => ({
-        role: msg.sender === "user" ? "user" : "assistant",
-        content: msg.content,
-      })),
-      { role: "user", content: message },
-    ]
+  const { message, history } = await request.json()
+  const messages = [
+    ...history.map((msg: { sender: string; content: string }) => ({
+      role: msg.sender === "user" ? "user" : "assistant",
+      content: msg.content,
+    })),
+    { role: "user", content: message },
+  ]
 
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: messages as Anthropic.MessageParam[],
-    })
+  const stream = client.messages.stream({
+    model: "claude-sonnet-4-20250514",
+    max_tokens: 1024,
+    system: SYSTEM_PROMPT,
+    messages: messages as Anthropic.MessageParam[],
+  })
 
-    const textContent = response.content.find((block) => block.type === "text")
-    const reply = textContent && "text" in textContent ? textContent.text : "I'm sorry, I couldn't generate a response."
+  const encoder = new TextEncoder()
+  const readable = new ReadableStream({
+    async start(controller) {
+      try {
+        for await (const event of stream) {
+          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+            controller.enqueue(encoder.encode(event.delta.text))
+          }
+        }
+        controller.close()
+      } catch (error) {
+        controller.error(error)
+      }
+    },
+  })
 
-    return NextResponse.json({ reply })
-  } catch (error: unknown) {
-    console.error("Error calling Claude:", error)
-    const errorMessage = error instanceof Error ? error.message : "Failed to get response from AI"
-    return NextResponse.json({ error: errorMessage }, { status: 500 })
-  }
+  return new Response(readable, {
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  })
 }

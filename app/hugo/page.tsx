@@ -1,4 +1,4 @@
-// Hugo AI Assistant - chat interface powered by Claude API
+// Hugo AI Assistant - chat interface with streaming responses
 "use client"
 
 import { useState } from "react"
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { Send, Bot, User, Loader2 } from "lucide-react"
 import Image from "next/image"
+import ReactMarkdown from "react-markdown"
 
 interface Message {
   id: string
@@ -43,25 +44,35 @@ export default function HugoPage() {
     setInputValue("")
     setIsLoading(true)
 
+    const hugoMessageId = (Date.now() + 1).toString()
+    setMessages((prev) => [...prev, { id: hugoMessageId, content: "", sender: "hugo", timestamp: new Date() }])
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: currentInput, history: messages.slice(1) }),
       })
-      const data = await response.json()
-      const hugoResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: data.error ? `Error: ${data.error}` : data.reply,
-        sender: "hugo",
-        timestamp: new Date(),
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          const chunk = decoder.decode(value)
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === hugoMessageId ? { ...msg, content: msg.content + chunk } : msg))
+          )
+        }
       }
-      setMessages((prev) => [...prev, hugoResponse])
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { id: (Date.now() + 1).toString(), content: "I'm sorry, something went wrong. Please try again.", sender: "hugo", timestamp: new Date() },
-      ])
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === hugoMessageId ? { ...msg, content: "I'm sorry, something went wrong. Please try again." } : msg
+        )
+      )
     } finally {
       setIsLoading(false)
     }
@@ -91,7 +102,13 @@ export default function HugoPage() {
                 </div>
                 <Card className={message.sender === "user" ? "bg-blue-600 text-white" : "bg-white"}>
                   <CardContent className="p-4">
-                    <p className="text-sm">{message.content}</p>
+                    {message.sender === "hugo" ? (
+                      <div className="text-sm prose prose-sm max-w-none prose-a:text-blue-600 prose-a:underline">
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <p className="text-sm">{message.content}</p>
+                    )}
                     <p className={`text-xs mt-2 ${message.sender === "user" ? "text-blue-100" : "text-gray-500"}`}>
                       {message.timestamp.toLocaleTimeString()}
                     </p>
