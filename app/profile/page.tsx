@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { User, Mail, Phone, MapPin, Building, Save } from "lucide-react"
-import { ProtectedRoute } from "@/components/protected-route"
 
 export default function ProfilePage() {
   const [formData, setFormData] = useState({
@@ -35,7 +34,6 @@ export default function ProfilePage() {
   }
 
   return (
-    <ProtectedRoute>
     <div className="p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
@@ -189,6 +187,5 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
-    </ProtectedRoute>
   )
 }

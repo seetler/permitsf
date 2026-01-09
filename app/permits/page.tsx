@@ -1,11 +1,8 @@
-"use client"
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { FileText, Search, Filter, Plus } from "lucide-react"
-import { ProtectedRoute } from "@/components/protected-route"
 
 const permits = [
   {
@@ -59,7 +56,6 @@ function getStatusColor(status: string) {
 
 export default function PermitsPage() {
   return (
-    <ProtectedRoute>
     <div className="p-6">
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -139,6 +135,5 @@ export default function PermitsPage() {
         </div>
       )}
     </div>
-    </ProtectedRoute>
   )
 }

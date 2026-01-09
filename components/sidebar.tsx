@@ -4,22 +4,31 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
-import { Bot, FileText, User, Menu } from "lucide-react"
+import { Bot, FileText, User, Menu, LogOut } from "lucide-react"
 import Image from "next/image"
+import { useUser, useClerk } from "@clerk/nextjs"
 
 const navigation = [
   { name: "Hugo", href: "/hugo", icon: Bot },
   { name: "My Permits", href: "/permits", icon: FileText },
-  { name: "My Profile", href: "/profile", icon: User },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const { user, isSignedIn } = useUser()
+  const { signOut } = useClerk()
+
+  const getInitial = () => {
+    if (user?.firstName) return user.firstName[0].toUpperCase()
+    if (user?.username) return user.username[0].toUpperCase()
+    if (user?.emailAddresses?.[0]?.emailAddress) return user.emailAddresses[0].emailAddress[0].toUpperCase()
+    return "?"
+  }
 
   return (
     <div
-      className={`${isCollapsed ? "w-12" : "w-64"} bg-white shadow-sm border-r border-gray-200 transition-all duration-300 ease-in-out`}
+      className={`${isCollapsed ? "w-12" : "w-64"} bg-white shadow-sm border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col`}
     >
       <div className={`p-6 ${isCollapsed ? "px-2 py-3" : ""}`}>
         <div className="flex items-center justify-between">
@@ -39,7 +48,7 @@ export function Sidebar() {
       </div>
 
       {!isCollapsed && (
-        <nav className="mt-8 px-4">
+        <nav className="mt-8 px-4 flex-1">
           <ul className="space-y-2">
             {navigation.map((item) => {
               const isActive = pathname === item.href
@@ -62,6 +71,62 @@ export function Sidebar() {
             })}
           </ul>
         </nav>
+      )}
+
+      {/* User Profile Section */}
+      {!isCollapsed && (
+        <div className="p-4 border-t border-gray-200">
+          {isSignedIn ? (
+            <div className="space-y-2">
+              <Link
+                href="/profile"
+                className={cn(
+                  "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
+                  pathname === "/profile"
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
+                )}
+              >
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-3 text-sm font-semibold">
+                  {getInitial()}
+                </div>
+                <span>{user?.firstName || user?.username || "My Profile"}</span>
+              </Link>
+              <button
+                onClick={() => signOut()}
+                className="flex items-center w-full px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+              >
+                <LogOut className="mr-3 h-4 w-4" />
+                <span>Sign out</span>
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+            >
+              <User className="mr-3 h-5 w-5" />
+              <span>Sign in</span>
+            </Link>
+          )}
+        </div>
+      )}
+
+      {/* Collapsed state user icon */}
+      {isCollapsed && (
+        <div className="p-2 border-t border-gray-200">
+          {isSignedIn ? (
+            <Link href="/profile" className="block mx-auto">
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-semibold hover:bg-blue-700 transition-colors">
+                {getInitial()}
+              </div>
+            </Link>
+          ) : (
+            <Link href="/sign-in" className="block mx-auto p-1 hover:bg-gray-100 rounded-full">
+              <User className="h-5 w-5 text-gray-600" />
+            </Link>
+          )}
+        </div>
       )}
     </div>
   )
