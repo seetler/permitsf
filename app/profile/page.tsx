@@ -1,3 +1,23 @@
+/**
+ * User Profile Page
+ *
+ * Allows users to view and edit their personal and business information.
+ * The form data is stored in component state.
+ *
+ * Route: /profile
+ * Auth Required: Yes (enforced by layout.tsx)
+ *
+ * Sections:
+ * - Personal Information (name, email, phone)
+ * - Address (street, city, state, zip)
+ * - Business Information (name, type, license, notes)
+ *
+ * TODO: Persist form data to a backend API
+ * TODO: Load user data from Clerk or database on mount
+ * TODO: Add form validation
+ * TODO: Show success/error toast on save
+ */
+
 "use client"
 
 import { useState } from "react"
@@ -9,6 +29,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { User, Mail, Phone, MapPin, Building, Save } from "lucide-react"
 
 export default function ProfilePage() {
+  /**
+   * Form state with mock default values
+   * TODO: Replace with actual user data from API/database
+   */
   const [formData, setFormData] = useState({
     firstName: "John",
     lastName: "Doe",
@@ -24,24 +48,33 @@ export default function ProfilePage() {
     notes: "General contractor specializing in residential construction and renovations.",
   })
 
+  /**
+   * Updates a single field in the form state
+   * @param field - The field name to update
+   * @param value - The new value
+   */
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
+  /**
+   * Handles form submission
+   * TODO: Implement actual save logic with API call
+   */
   const handleSave = () => {
-    // Simulate saving profile
     console.log("Saving profile:", formData)
   }
 
   return (
     <div className="p-6 pt-16 md:pt-6">
+      {/* Page header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
         <p className="text-gray-600 mt-2">Manage your personal and business information</p>
       </div>
 
       <div className="max-w-4xl space-y-6">
-        {/* Personal Information */}
+        {/* Personal Information Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -50,6 +83,7 @@ export default function ProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Name fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name</Label>
@@ -68,6 +102,7 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
+            {/* Contact fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email" className="flex items-center space-x-1">
@@ -92,7 +127,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Address Information */}
+        {/* Address Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -109,6 +144,7 @@ export default function ProfilePage() {
                 onChange={(e) => handleInputChange("address", e.target.value)}
               />
             </div>
+            {/* City, State, ZIP */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="city">City</Label>
@@ -130,7 +166,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Business Information */}
+        {/* Business Information Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -139,6 +175,7 @@ export default function ProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Business name and type */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="businessName">Business Name</Label>
@@ -157,6 +194,7 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
+            {/* License number */}
             <div>
               <Label htmlFor="licenseNumber">License Number</Label>
               <Input
@@ -165,6 +203,7 @@ export default function ProfilePage() {
                 onChange={(e) => handleInputChange("licenseNumber", e.target.value)}
               />
             </div>
+            {/* Notes */}
             <div>
               <Label htmlFor="notes">Additional Notes</Label>
               <Textarea
