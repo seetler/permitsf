@@ -1,36 +1,76 @@
-// User profile page - personal and business info form (mock data, no persistence)
+// User profile page - saves to Clerk user metadata
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useUser } from "@clerk/nextjs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { User, Mail, Phone, MapPin, Building, Save } from "lucide-react"
+import { User, Mail, Phone, MapPin, Building, Save, Loader2, Check } from "lucide-react"
+
+interface ProfileData {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  address: string
+  city: string
+  state: string
+  zipCode: string
+  businessName: string
+  businessType: string
+  licenseNumber: string
+  notes: string
+}
+
+const emptyProfile: ProfileData = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  address: "",
+  city: "",
+  state: "",
+  zipCode: "",
+  businessName: "",
+  businessType: "",
+  licenseNumber: "",
+  notes: "",
+}
 
 export default function ProfilePage() {
-  const [formData, setFormData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@email.com",
-    phone: "(555) 123-4567",
-    address: "123 Main Street",
-    city: "Anytown",
-    state: "CA",
-    zipCode: "12345",
-    businessName: "Doe Construction LLC",
-    businessType: "Construction",
-    licenseNumber: "LIC-123456",
-    notes: "General contractor specializing in residential construction and renovations.",
-  })
+  const { user } = useUser()
+  const [formData, setFormData] = useState<ProfileData>(emptyProfile)
+  const [isSaving, setIsSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    if (user?.unsafeMetadata?.profile) {
+      setFormData(user.unsafeMetadata.profile as ProfileData)
+    }
+  }, [user])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+    setSaved(false)
   }
 
-  const handleSave = () => {
-    console.log("Saving profile:", formData)
+  const handleSave = async () => {
+    if (!user) return
+    setIsSaving(true)
+    try {
+      await user.update({
+        unsafeMetadata: { ...user.unsafeMetadata, profile: formData },
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (error) {
+      console.error("Failed to save profile:", error)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -137,9 +177,15 @@ export default function ProfilePage() {
         </Card>
 
         <div className="flex justify-end">
-          <Button onClick={handleSave} className="flex items-center space-x-2">
-            <Save className="h-4 w-4" />
-            <span>Save Profile</span>
+          <Button onClick={handleSave} disabled={isSaving} className="flex items-center space-x-2">
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : saved ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            <span>{saved ? "Saved!" : "Save Profile"}</span>
           </Button>
         </div>
       </div>

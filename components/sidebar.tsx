@@ -12,6 +12,7 @@ import { useUser, useClerk } from "@clerk/nextjs"
 const navigation = [
   { name: "Hugo", href: "/hugo", icon: Bot },
   { name: "My Permits", href: "/permits", icon: FileText },
+  { name: "My Profile", href: "/profile", icon: User },
 ]
 
 export function Sidebar() {
