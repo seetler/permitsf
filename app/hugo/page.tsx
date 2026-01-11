@@ -16,6 +16,37 @@ interface Message {
   timestamp: Date
 }
 
+// Typing indicator - animated dots shown while awaiting response (added 2026-01-11)
+function TypingIndicator() {
+  return (
+    <div className="flex items-center space-x-1 py-1">
+      {[0, 150, 300].map((delay) => (
+        <span
+          key={delay}
+          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+          style={{ animationDelay: `${delay}ms` }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function MessageContent({ message, isLoading }: { message: Message; isLoading: boolean }) {
+  if (message.sender === "user") {
+    return <p className="text-sm">{message.content}</p>
+  }
+
+  if (message.content === "" && isLoading) {
+    return <TypingIndicator />
+  }
+
+  return (
+    <div className="text-sm prose prose-sm max-w-none prose-a:text-blue-600 prose-a:underline">
+      <ReactMarkdown>{message.content}</ReactMarkdown>
+    </div>
+  )
+}
+
 export default function HugoPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -102,21 +133,7 @@ export default function HugoPage() {
                 </div>
                 <Card className={message.sender === "user" ? "bg-blue-600 text-white" : "bg-white"}>
                   <CardContent className="p-4">
-                    {message.sender === "hugo" ? (
-                      message.content === "" && isLoading ? (
-                        <div className="flex items-center space-x-1 py-1">
-                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
-                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
-                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
-                        </div>
-                      ) : (
-                        <div className="text-sm prose prose-sm max-w-none prose-a:text-blue-600 prose-a:underline">
-                          <ReactMarkdown>{message.content}</ReactMarkdown>
-                        </div>
-                      )
-                    ) : (
-                      <p className="text-sm">{message.content}</p>
-                    )}
+                    <MessageContent message={message} isLoading={isLoading} />
                     <p className={`text-xs mt-2 ${message.sender === "user" ? "text-blue-100" : "text-gray-500"}`}>
                       {message.timestamp.toLocaleTimeString()}
                     </p>
