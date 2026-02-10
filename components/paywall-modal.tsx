@@ -11,9 +11,11 @@ interface PaywallModalProps {
 
 export function PaywallModal({ onClose }: PaywallModalProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubscribe = async () => {
     setIsLoading(true)
+    setError(null)
     try {
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -21,9 +23,13 @@ export function PaywallModal({ onClose }: PaywallModalProps) {
       const data = await response.json()
       if (data.url) {
         window.location.href = data.url
+      } else {
+        setError(data.error || "Failed to create checkout session")
+        setIsLoading(false)
       }
     } catch (error) {
       console.error("Failed to create checkout session:", error)
+      setError("Something went wrong. Please try again.")
       setIsLoading(false)
     }
   }
@@ -77,6 +83,11 @@ export function PaywallModal({ onClose }: PaywallModalProps) {
           </div>
 
           <div className="space-y-3">
+            {error && (
+              <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded">
+                {error}
+              </div>
+            )}
             <Button
               onClick={handleSubscribe}
               disabled={isLoading}
