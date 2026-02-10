@@ -1,8 +1,9 @@
 # Paywall Implementation Progress
 
-## Status: Complete
+## Status: Live in Production ✓
 
 Last updated: February 10, 2026
+Production URL: https://www.permitsf.com
 
 ---
 
@@ -40,32 +41,26 @@ Last updated: February 10, 2026
 
 ---
 
-## Production Deployment Checklist
+## Production Deployment Checklist (Completed)
 
-### 1. Set Environment Variables in Vercel
-```
-STRIPE_SECRET_KEY=sk_live_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...  (from production webhook)
-STRIPE_PRICE_ID=price_...
-NEXT_PUBLIC_APP_URL=https://your-production-domain.com
-```
+### 1. ✓ Environment Variables in Vercel
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_ID`
+- `NEXT_PUBLIC_APP_URL=https://www.permitsf.com`
 
-### 2. Configure Stripe Webhook
-1. Go to Stripe Dashboard → Developers → Webhooks
-2. Add endpoint: `https://your-domain.com/api/stripe/webhook`
-3. Select events:
-   - `checkout.session.completed`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-4. Copy the signing secret to `STRIPE_WEBHOOK_SECRET` in Vercel
+### 2. ✓ Stripe Webhook Configured
+- Endpoint: `https://www.permitsf.com/api/stripe/webhook`
+- Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 
-### 3. Deploy
-```bash
-git add .
-git commit -m "Add Stripe subscription integration"
-git push
-```
+### 3. ✓ Clerk Middleware Added
+- `middleware.ts` added for API route authentication
+
+### 4. ✓ Deployed and Tested
+- Checkout flow working
+- Webhook updating user subscription tier
+- Customer portal accessible
 
 ---
 

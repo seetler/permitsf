@@ -1,5 +1,7 @@
 # PermitSF
 
+**Live at: https://www.permitsf.com**
+
 A permit tracking and management application for San Francisco residents and businesses, featuring Hugo - an AI assistant powered by Claude.
 
 ## Tech Stack
@@ -53,6 +55,7 @@ permitsf/
 │       └── textarea.tsx
 │
 ├── lib/utils.ts                # cn() class merge utility
+├── middleware.ts               # Clerk auth middleware
 └── public/images/hugo.jpg      # Hugo avatar
 ```
 
@@ -170,9 +173,11 @@ Vercel deployment requires:
 ### Stripe Webhook Setup
 
 1. Go to Stripe Dashboard → Developers → Webhooks
-2. Add endpoint: `https://your-domain.com/api/stripe/webhook`
+2. Add endpoint: `https://www.permitsf.com/api/stripe/webhook`
 3. Select events:
    - `checkout.session.completed`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
 4. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`
+
+**Important:** Use `www.permitsf.com` (not `permitsf.com`) to match the Clerk domain configuration.
