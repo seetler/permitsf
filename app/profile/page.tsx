@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { User, Mail, Phone, MapPin, Building, Save, Loader2, Check } from "lucide-react"
+import { User, Mail, Phone, MapPin, Building, Save, Loader2, Check, Crown, Sparkles } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 interface ProfileData {
   firstName: string
@@ -45,6 +46,40 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState<ProfileData>(emptyProfile)
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false)
+  const [isLoadingCheckout, setIsLoadingCheckout] = useState(false)
+
+  const isPaid = user?.publicMetadata?.subscriptionTier === "paid"
+
+  const handleManageSubscription = async () => {
+    setIsLoadingPortal(true)
+    try {
+      const response = await fetch("/api/stripe/portal", { method: "POST" })
+      const data = await response.json()
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch (error) {
+      console.error("Failed to open portal:", error)
+    } finally {
+      setIsLoadingPortal(false)
+    }
+  }
+
+  const handleUpgrade = async () => {
+    setIsLoadingCheckout(true)
+    try {
+      const response = await fetch("/api/stripe/checkout", { method: "POST" })
+      const data = await response.json()
+      if (data.url) {
+        window.location.href = data.url
+      }
+    } catch (error) {
+      console.error("Failed to create checkout:", error)
+    } finally {
+      setIsLoadingCheckout(false)
+    }
+  }
 
   useEffect(() => {
     if (user?.unsafeMetadata?.profile) {
@@ -81,6 +116,39 @@ export default function ProfilePage() {
       </div>
 
       <div className="max-w-4xl space-y-6">
+        <Card className={isPaid ? "border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50" : ""}>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {isPaid ? <Crown className="h-5 w-5 text-amber-500" /> : <Sparkles className="h-5 w-5 text-gray-400" />}
+                <span>Subscription</span>
+              </div>
+              <Badge className={isPaid ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-600"}>
+                {isPaid ? "Premium" : "Free"}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isPaid ? (
+              <div className="flex items-center justify-between">
+                <p className="text-gray-600">You have full access to all features including permits management.</p>
+                <Button variant="outline" onClick={handleManageSubscription} disabled={isLoadingPortal}>
+                  {isLoadingPortal ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Manage Subscription
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <p className="text-gray-600">Upgrade to Premium for full access to permits management.</p>
+                <Button onClick={handleUpgrade} disabled={isLoadingCheckout}>
+                  {isLoadingCheckout ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Crown className="h-4 w-4 mr-2" />}
+                  Upgrade to Premium
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">

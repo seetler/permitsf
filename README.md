@@ -11,6 +11,7 @@ A permit tracking and management application for San Francisco residents and bus
 - **AI**: Anthropic Claude API (@anthropic-ai/sdk)
 - **UI Components**: shadcn/ui (Radix UI primitives)
 - **Icons**: Lucide React
+- **Payments**: Stripe (subscriptions)
 
 ---
 
@@ -19,14 +20,19 @@ A permit tracking and management application for San Francisco residents and bus
 ```
 permitsf/
 ├── app/
-│   ├── api/chat/route.ts       # Claude API endpoint for Hugo
+│   ├── api/
+│   │   ├── chat/route.ts       # Claude API endpoint for Hugo
+│   │   └── stripe/
+│   │       ├── checkout/route.ts  # Creates Stripe checkout session
+│   │       ├── webhook/route.ts   # Handles Stripe events
+│   │       └── portal/route.ts    # Stripe customer portal
 │   ├── hugo/page.tsx           # AI chat assistant (public)
 │   ├── permits/
 │   │   ├── layout.tsx          # Auth guard wrapper
-│   │   └── page.tsx            # Permit dashboard (protected)
+│   │   └── page.tsx            # Permit dashboard (paywall)
 │   ├── profile/
 │   │   ├── layout.tsx          # Auth guard wrapper
-│   │   └── page.tsx            # User profile form (protected)
+│   │   └── page.tsx            # User profile + subscription management
 │   ├── sign-in/[[...sign-in]]/page.tsx
 │   ├── sign-up/[[...sign-up]]/page.tsx
 │   ├── globals.css             # Tailwind + CSS variables
@@ -37,6 +43,7 @@ permitsf/
 │   ├── auth-layout.tsx         # Shared auth guard component
 │   ├── sidebar.tsx             # Responsive navigation
 │   ├── providers.tsx           # ClerkProvider wrapper
+│   ├── paywall-modal.tsx       # Subscription upgrade modal
 │   └── ui/                     # shadcn/ui components
 │       ├── badge.tsx
 │       ├── button.tsx
@@ -57,11 +64,14 @@ permitsf/
 |-------|------|-------------|
 | `/` | No | Redirects to `/hugo` |
 | `/hugo` | No | Hugo AI assistant |
-| `/permits` | Yes | Permit dashboard |
-| `/profile` | Yes | User profile |
+| `/permits` | Yes | Permit dashboard (requires subscription) |
+| `/profile` | Yes | User profile + subscription management |
 | `/sign-in` | No | Clerk sign-in |
 | `/sign-up` | No | Clerk sign-up |
 | `/api/chat` | No | POST - Hugo AI endpoint |
+| `/api/stripe/checkout` | Yes | POST - Create Stripe checkout session |
+| `/api/stripe/webhook` | No | POST - Stripe webhook handler |
+| `/api/stripe/portal` | Yes | POST - Open Stripe customer portal |
 
 ---
 
@@ -69,11 +79,24 @@ permitsf/
 
 ```bash
 # .env.local
+
+# AI
 ANTHROPIC_API_KEY=sk-ant-...
+
+# Clerk Authentication
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
 CLERK_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+
+# Stripe Payments
+STRIPE_SECRET_KEY=sk_live_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_ID=price_...
+
+# App URL (for Stripe redirects)
+NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
 ---
@@ -99,11 +122,21 @@ npm start        # Production server
 ### Permit Dashboard (`/permits`)
 - View permits with status badges (pending, approved, under-review, rejected)
 - Search and filter UI
+- Requires Premium subscription (paywall for free users)
 - *Uses mock data*
 
 ### User Profile (`/profile`)
 - Personal and business information form
-- *Uses mock data, no persistence*
+- Subscription status card (Free/Premium)
+- Upgrade button for free users
+- "Manage Subscription" for Premium users (opens Stripe portal)
+- *Profile data stored in Clerk metadata*
+
+### Stripe Subscription
+- Monthly subscription ($9.99/month)
+- Checkout via Stripe hosted page
+- Webhook updates Clerk user metadata on payment events
+- Customer portal for subscription management
 
 ### Responsive Sidebar
 - Desktop: Collapsible sidebar
@@ -128,3 +161,18 @@ Vercel deployment requires:
 - `CLERK_SECRET_KEY`
 - `NEXT_PUBLIC_CLERK_SIGN_IN_URL`
 - `NEXT_PUBLIC_CLERK_SIGN_UP_URL`
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET` (from Stripe Dashboard webhook config)
+- `STRIPE_PRICE_ID`
+- `NEXT_PUBLIC_APP_URL` (your production URL)
+
+### Stripe Webhook Setup
+
+1. Go to Stripe Dashboard → Developers → Webhooks
+2. Add endpoint: `https://your-domain.com/api/stripe/webhook`
+3. Select events:
+   - `checkout.session.completed`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+4. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`
