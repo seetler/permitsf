@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
-import { Bot, FileText, User, Menu, LogOut, X, AlertCircle } from "lucide-react"
+import { Bot, FileText, User, Menu, LogOut, X } from "lucide-react"
 import Image from "next/image"
 import { useUser, useClerk } from "@clerk/nextjs"
 
@@ -13,7 +13,6 @@ const navigation = [
   { name: "Hugo", href: "/hugo", icon: Bot },
   { name: "My Permits", href: "/permits", icon: FileText },
   { name: "My Profile", href: "/profile", icon: User },
-  { name: "Disclaimer", href: "/disclaimer", icon: AlertCircle },
 ]
 
 export function Sidebar() {
