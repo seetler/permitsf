@@ -13,7 +13,7 @@ const navigation = [
   { name: "Hugo", href: "/hugo", icon: Bot },
   { name: "My Permits", href: "/permits", icon: FileText },
   { name: "My Profile", href: "/profile", icon: User },
-  { name: "Disclaimer", href: "/disclaimer", icon: AlertCircle },
+  //{ name: "Disclaimer", href: "/disclaimer", icon: AlertCircle },
 ]
 
 export function Sidebar() {
