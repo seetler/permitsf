@@ -1,3 +1,14 @@
 {
-  "/permits/page": "app/permits/page.js"
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/chat/route": "app/api/chat/route.js",
+  "/api/stripe/checkout/route": "app/api/stripe/checkout/route.js",
+  "/api/stripe/portal/route": "app/api/stripe/portal/route.js",
+  "/api/stripe/webhook/route": "app/api/stripe/webhook/route.js",
+  "/hugo/page": "app/hugo/page.js",
+  "/page": "app/page.js",
+  "/permits/page": "app/permits/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/sign-in/[[...sign-in]]/page": "app/sign-in/[[...sign-in]]/page.js",
+  "/sign-up/[[...sign-up]]/page": "app/sign-up/[[...sign-up]]/page.js"
 }

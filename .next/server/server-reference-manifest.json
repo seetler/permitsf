@@ -1,5 +1,177 @@
 {
-  "node": {},
+  "node": {
+    "00c2b85206c328e5d35a708759609691d2ac4cbe77": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": 92193,
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/hugo/page": {
+          "moduleId": 30012,
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/page": {
+          "moduleId": 63628,
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/permits/page": {
+          "moduleId": 52499,
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/profile/page": {
+          "moduleId": 4221,
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": 95856,
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": 63143,
+          "async": false,
+          "exportedName": "detectKeylessEnvDriftAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/hugo/page": "action-browser",
+        "app/page": "action-browser",
+        "app/permits/page": "action-browser",
+        "app/profile/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser",
+        "app/sign-up/[[...sign-up]]/page": "action-browser"
+      },
+      "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
+      "exportedName": "detectKeylessEnvDriftAction"
+    },
+    "006c6abf89ffd06b0e9aaaee6be2be87d7e73bd15f": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": 92193,
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/hugo/page": {
+          "moduleId": 30012,
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/page": {
+          "moduleId": 63628,
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/permits/page": {
+          "moduleId": 52499,
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/profile/page": {
+          "moduleId": 4221,
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": 95856,
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": 63143,
+          "async": false,
+          "exportedName": "invalidateCacheAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/hugo/page": "action-browser",
+        "app/page": "action-browser",
+        "app/permits/page": "action-browser",
+        "app/profile/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser",
+        "app/sign-up/[[...sign-up]]/page": "action-browser"
+      },
+      "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js",
+      "exportedName": "invalidateCacheAction"
+    },
+    "0039eb3f999cee24e8e16f6d39b670b86d3affaf67": {
+      "workers": {
+        "app/_not-found/page": {
+          "moduleId": 92193,
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/hugo/page": {
+          "moduleId": 30012,
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/page": {
+          "moduleId": 63628,
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/permits/page": {
+          "moduleId": 52499,
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/profile/page": {
+          "moduleId": 4221,
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-in/[[...sign-in]]/page": {
+          "moduleId": 95856,
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        },
+        "app/sign-up/[[...sign-up]]/page": {
+          "moduleId": 63143,
+          "async": false,
+          "exportedName": "createOrReadKeylessAction",
+          "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js"
+        }
+      },
+      "layer": {
+        "app/_not-found/page": "action-browser",
+        "app/hugo/page": "action-browser",
+        "app/page": "action-browser",
+        "app/permits/page": "action-browser",
+        "app/profile/page": "action-browser",
+        "app/sign-in/[[...sign-in]]/page": "action-browser",
+        "app/sign-up/[[...sign-up]]/page": "action-browser"
+      },
+      "filename": "Code/permitsf/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js",
+      "exportedName": "createOrReadKeylessAction"
+    }
+  },
   "edge": {},
-  "encryptionKey": "Y1vwTAUQs7+XSRF5+FpLejth2QbXOuiIgZva/g/pkcE="
+  "encryptionKey": "6rGVMzjJInyAlKJRaQCJgT7/RaYJ+fjWwgO8+yNehiQ="
 }
