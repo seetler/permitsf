@@ -183,14 +183,14 @@ export default function HugoPage() {
             </Button>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => setInputValue("I want to build a deck")}>
-              Building a deck
+            <Button variant="outline" size="sm" onClick={() => setInputValue("Start a Business")}>
+              Start a Business
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputValue("Starting a food truck business")}>
-              Food truck business
+            <Button variant="outline" size="sm" onClick={() => setInputValue("Get Permits for Street Closure")}>
+              Get Permits for Street Closure
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputValue("Home renovation")}>
-              Home renovation
+            <Button variant="outline" size="sm" onClick={() => setInputValue("Renovate an Old House")}>
+              Renovate an Old House
             </Button>
           </div>
         </div>
