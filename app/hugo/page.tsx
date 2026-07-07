@@ -186,8 +186,8 @@ export default function HugoPage() {
             <Button variant="outline" size="sm" onClick={() => setInputValue("Start a Business")}>
               Start a Business
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputValue("Get Permits for Street Closure")}>
-              Get Permits for Street Closure
+            <Button variant="outline" size="sm" onClick={() => setInputValue("Get Permit for Street Closure")}>
+              Get Permit for Street Closure
             </Button>
             <Button variant="outline" size="sm" onClick={() => setInputValue("Renovate an Old House")}>
               Renovate an Old House
