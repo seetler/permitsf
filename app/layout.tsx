@@ -7,7 +7,7 @@ import { Providers } from "@/components/providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
+export const metadata: Metadata = 
   title: "PermitSF",
   description: "Track and manage your San Francisco permits",
   icons: { icon: "/favicon.ico" },

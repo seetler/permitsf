@@ -1,8 +1,8 @@
-// POST /api/chat - Streaming Claude API endpoint for Hugo assistant
-import Anthropic from "@anthropic-ai/sdk"
+// POST /api/chat - Streaming OpenAI endpoint for Hugo assistant
+import OpenAI from "openai"
 import { NextRequest } from "next/server"
 
-const client = new Anthropic()
+const client = new OpenAI()
 
 const SYSTEM_PROMPT = `You are Hugo, a friendly AI permit assistant for San Francisco. Your role is to help users find the right city resources for their permit needs.
 
@@ -58,6 +58,7 @@ Always end responses with a relevant link. If unsure which department, direct to
 export async function POST(request: NextRequest) {
   const { message, history } = await request.json()
   const messages = [
+    { role: "system", content: SYSTEM_PROMPT },
     ...history.map((msg: { sender: string; content: string }) => ({
       role: msg.sender === "user" ? "user" : "assistant",
       content: msg.content,
@@ -65,20 +66,21 @@ export async function POST(request: NextRequest) {
     { role: "user", content: message },
   ]
 
-  const stream = client.messages.stream({
-    model: "claude-sonnet-4-20250514",
+  const stream = await client.chat.completions.create({
+    model: "gpt-4o-mini",
     max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages: messages as Anthropic.MessageParam[],
+    messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+    stream: true,
   })
 
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
     async start(controller) {
       try {
-        for await (const event of stream) {
-          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-            controller.enqueue(encoder.encode(event.delta.text))
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content
+          if (text) {
+            controller.enqueue(encoder.encode(text))
           }
         }
         controller.close()

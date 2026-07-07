@@ -2,7 +2,7 @@
 
 **Live at: https://www.permitsf.com**
 
-A permit tracking and management application for San Francisco residents and businesses, featuring Hugo - an AI assistant powered by Claude.
+A permit tracking and management application for San Francisco residents and businesses, featuring Hugo - an AI assistant powered by OpenAI.
 
 ## Tech Stack
 
@@ -10,7 +10,7 @@ A permit tracking and management application for San Francisco residents and bus
 - **Language**: TypeScript + React 19
 - **Styling**: Tailwind CSS + CSS Variables
 - **Auth**: Clerk (@clerk/nextjs)
-- **AI**: Anthropic Claude API (@anthropic-ai/sdk)
+- **AI**: OpenAI API (openai)
 - **UI Components**: shadcn/ui (Radix UI primitives)
 - **Icons**: Lucide React
 - **Payments**: Stripe (subscriptions)
@@ -23,7 +23,7 @@ A permit tracking and management application for San Francisco residents and bus
 permitsf/
 ├── app/
 │   ├── api/
-│   │   ├── chat/route.ts       # Claude API endpoint for Hugo
+│   │   ├── chat/route.ts       # OpenAI API endpoint for Hugo
 │   │   └── stripe/
 │   │       ├── checkout/route.ts  # Creates Stripe checkout session
 │   │       ├── webhook/route.ts   # Handles Stripe events
@@ -84,7 +84,7 @@ permitsf/
 # .env.local
 
 # AI
-ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
 
 # Clerk Authentication
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
@@ -118,7 +118,7 @@ npm start        # Production server
 ## Features
 
 ### Hugo AI Assistant (`/hugo`)
-- Chat interface powered by Claude API
+- Chat interface powered by OpenAI API
 - Answers SF permit questions with official SF.gov links
 - Quick-start prompts for common questions
 
@@ -159,7 +159,7 @@ Protected routes (`/permits`, `/profile`) use a shared `AuthLayout` component th
 ## Deployment
 
 Vercel deployment requires:
-- `ANTHROPIC_API_KEY`
+- `OPENAI_API_KEY`
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
 - `CLERK_SECRET_KEY`
 - `NEXT_PUBLIC_CLERK_SIGN_IN_URL`
