@@ -16,6 +16,19 @@ interface Message {
   timestamp: Date
 }
 
+const DEFAULT_ERROR_MESSAGE = "I'm sorry, something went wrong. Please try again."
+
+function getReadableErrorMessage(message: string) {
+  const trimmed = message.trim()
+  if (!trimmed) return DEFAULT_ERROR_MESSAGE
+
+  if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
+    return "The chat service returned an internal server error. Please restart the dev server and check the server console for details."
+  }
+
+  return trimmed
+}
+
 // Typing indicator - animated dots shown while awaiting response (added 2026-01-11)
 function TypingIndicator() {
   return (
@@ -87,7 +100,7 @@ export default function HugoPage() {
 
       if (!response.ok) {
         const errorMessage = await response.text()
-        throw new Error(errorMessage || "I'm sorry, something went wrong. Please try again.")
+        throw new Error(getReadableErrorMessage(errorMessage))
       }
 
       const reader = response.body?.getReader()
@@ -109,7 +122,7 @@ export default function HugoPage() {
           msg.id === hugoMessageId
             ? {
                 ...msg,
-                content: error instanceof Error ? error.message : "I'm sorry, something went wrong. Please try again.",
+                content: error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE,
               }
             : msg
         )
