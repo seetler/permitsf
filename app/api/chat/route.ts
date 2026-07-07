@@ -2,8 +2,6 @@
 import OpenAI from "openai"
 import { NextRequest } from "next/server"
 
-const client = new OpenAI()
-
 const SYSTEM_PROMPT = `You are Hugo, a friendly AI permit assistant for San Francisco. Your role is to help users find the right city resources for their permit needs.
 
 IMPORTANT: Always direct users to official SF.gov resources. Provide relevant links from the SF.gov sitemap below whenever possible. Your job is to guide users to the right city department, NOT to provide detailed permit information yourself.
@@ -55,23 +53,61 @@ You should NOT:
 
 Always end responses with a relevant link. If unsure which department, direct to SF 311: https://sfgov.org/sf311`
 
-export async function POST(request: NextRequest) {
-  const { message, history } = await request.json()
-  const messages = [
-    { role: "system", content: SYSTEM_PROMPT },
-    ...history.map((msg: { sender: string; content: string }) => ({
-      role: msg.sender === "user" ? "user" : "assistant",
-      content: msg.content,
-    })),
-    { role: "user", content: message },
-  ]
-
-  const stream = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    max_tokens: 1024,
-    messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-    stream: true,
+function chatError(message: string, status = 500) {
+  return new Response(message, {
+    status,
+    headers: { "Content-Type": "text/plain; charset=utf-8" },
   })
+}
+
+function getOpenAIErrorMessage(error: unknown) {
+  if (error instanceof OpenAI.APIError) {
+    if (error.status === 401) {
+      return "OpenAI rejected the API key. Please create a new key, update OPENAI_API_KEY, and restart the dev server."
+    }
+
+    if (error.status === 429) {
+      return "OpenAI rejected the request because the account has no available quota or hit a rate limit. Please check OpenAI billing and usage."
+    }
+
+    return `OpenAI returned an error: ${error.message}`
+  }
+
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return "The chat service hit an unexpected error."
+}
+
+export async function POST(request: NextRequest) {
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    return chatError("OPENAI_API_KEY is not set. Add it to .env.local, then restart the dev server.", 500)
+  }
+
+  let stream: AsyncIterable<OpenAI.Chat.Completions.ChatCompletionChunk>
+  try {
+    const { message, history = [] } = await request.json()
+    const messages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...history.map((msg: { sender: string; content: string }) => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.content,
+      })),
+      { role: "user", content: message },
+    ]
+
+    const client = new OpenAI({ apiKey })
+    stream = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      max_tokens: 1024,
+      messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+      stream: true,
+    })
+  } catch (error) {
+    return chatError(getOpenAIErrorMessage(error))
+  }
 
   const encoder = new TextEncoder()
   const readable = new ReadableStream({
@@ -85,7 +121,8 @@ export async function POST(request: NextRequest) {
         }
         controller.close()
       } catch (error) {
-        controller.error(error)
+        controller.enqueue(encoder.encode(getOpenAIErrorMessage(error)))
+        controller.close()
       }
     },
   })

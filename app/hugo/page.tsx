@@ -85,6 +85,11 @@ export default function HugoPage() {
         body: JSON.stringify({ message: currentInput, history: messages.slice(1) }),
       })
 
+      if (!response.ok) {
+        const errorMessage = await response.text()
+        throw new Error(errorMessage || "I'm sorry, something went wrong. Please try again.")
+      }
+
       const reader = response.body?.getReader()
       const decoder = new TextDecoder()
 
@@ -98,10 +103,15 @@ export default function HugoPage() {
           )
         }
       }
-    } catch {
+    } catch (error) {
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === hugoMessageId ? { ...msg, content: "I'm sorry, something went wrong. Please try again." } : msg
+          msg.id === hugoMessageId
+            ? {
+                ...msg,
+                content: error instanceof Error ? error.message : "I'm sorry, something went wrong. Please try again.",
+              }
+            : msg
         )
       )
     } finally {
