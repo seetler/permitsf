@@ -3,7 +3,7 @@
 ## Status: Live in Production ✓
 
 Last updated: February 10, 2026
-Production URL: https://www.permitsf.com
+Production URL: https://civiceasy.com
 
 ---
 
@@ -48,10 +48,10 @@ Production URL: https://www.permitsf.com
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_PRICE_ID`
-- `NEXT_PUBLIC_APP_URL=https://www.permitsf.com`
+- `NEXT_PUBLIC_APP_URL=https://civiceasy.com`
 
 ### 2. ✓ Stripe Webhook Configured
-- Endpoint: `https://www.permitsf.com/api/stripe/webhook`
+- Endpoint: `https://civiceasy.com/api/stripe/webhook`
 - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`
 
 ### 3. ✓ Clerk Middleware Added

@@ -1,6 +1,6 @@
-# PermitSF
+# Civic Easy
 
-**Live at: https://www.permitsf.com**
+**Live at: https://civiceasy.com**
 
 A permit tracking and management application for San Francisco residents and businesses, featuring Hugo - an AI assistant powered by OpenAI.
 
@@ -20,7 +20,7 @@ A permit tracking and management application for San Francisco residents and bus
 ## Project Structure
 
 ```
-permitsf/
+civiceasy/
 ├── app/
 │   ├── api/
 │   │   ├── chat/route.ts       # OpenAI API endpoint for Hugo
@@ -173,11 +173,11 @@ Vercel deployment requires:
 ### Stripe Webhook Setup
 
 1. Go to Stripe Dashboard → Developers → Webhooks
-2. Add endpoint: `https://www.permitsf.com/api/stripe/webhook`
+2. Add endpoint: `https://civiceasy.com/api/stripe/webhook`
 3. Select events:
    - `checkout.session.completed`
    - `customer.subscription.updated`
    - `customer.subscription.deleted`
 4. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`
 
-**Important:** Use `www.permitsf.com` (not `permitsf.com`) to match the Clerk domain configuration.
+**Important:** Configure Clerk for `civiceasy.com` to match the production domain.

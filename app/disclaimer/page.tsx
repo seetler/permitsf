@@ -19,7 +19,7 @@ export default function DisclaimerPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-gray-700">
             <p>
-              The information provided by Permit Tracker is for general informational purposes only.
+              The information provided by Civic Easy is for general informational purposes only.
               All information on the site is provided in good faith, however we make no representation
               or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity,
               reliability, availability, or completeness of any information on the site.

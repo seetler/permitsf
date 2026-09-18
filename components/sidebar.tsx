@@ -56,7 +56,7 @@ export function Sidebar() {
             {!isCollapsed && (
               <div className="flex items-center space-x-2">
                 <Image src="/images/hugo.jpg" alt="SF Logo" width={32} height={32} className="rounded-full" />
-                <h1 className="text-xl font-bold text-gray-900">Permit Tracker</h1>
+                <h1 className="text-xl font-bold text-gray-900">Civic Easy</h1>
               </div>
             )}
             <button
