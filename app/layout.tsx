@@ -9,7 +9,8 @@ const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Civic Easy",
-  description: "Track and manage your San Francisco permits",
+  description:
+    "Tell us what you need done. Civic Easy handles your San Francisco permit research, filing, and follow-up.",
   icons: { icon: "/favicon.ico" },
 }
 

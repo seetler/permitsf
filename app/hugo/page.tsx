@@ -1,198 +1,277 @@
-// Hugo AI Assistant - chat interface with streaming responses
 "use client"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Send, Bot, User, Loader2 } from "lucide-react"
-import Image from "next/image"
-import ReactMarkdown from "react-markdown"
-
+import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { ArrowRight, Send, MapPin, ExternalLink, Loader2, Plus, Check } from "lucide-react"
+import { api, saveDraft } from "@/lib/client"
+import { formatMoney, type Service } from "@/lib/catalog"
+interface Resource {
+  id: string
+  name: string
+  url: string
+  description: string
+  address: string | null
+  locationUrl: string | null
+  verifiedAt: string
+}
+interface Reply {
+  answer: string
+  summary: string
+  recommendations: { serviceId: string; permitName: string; reason: string; service: Service }[]
+  resources: Resource[]
+}
 interface Message {
   id: string
-  content: string
   sender: "user" | "hugo"
-  timestamp: Date
+  content: string
+  reply?: Reply
 }
-
-const DEFAULT_ERROR_MESSAGE = "I'm sorry, something went wrong. Please try again."
-
-function getReadableErrorMessage(message: string) {
-  const trimmed = message.trim()
-  if (!trimmed) return DEFAULT_ERROR_MESSAGE
-
-  if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html")) {
-    return "The chat service returned an internal server error. Please restart the dev server and check the server console for details."
-  }
-
-  return trimmed
+const greeting: Message = {
+  id: "welcome",
+  sender: "hugo",
+  content:
+    "Tell me what you want to get done. I'll help identify the permits, and Civic Easy can take care of the paperwork and follow-up.",
 }
-
-// Typing indicator - animated dots shown while awaiting response (added 2026-01-11)
-function TypingIndicator() {
-  return (
-    <div className="flex items-center space-x-1 py-1">
-      {[0, 150, 300].map((delay) => (
-        <span
-          key={delay}
-          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-          style={{ animationDelay: `${delay}ms` }}
-        />
-      ))}
-    </div>
-  )
-}
-
-function MessageContent({ message, isLoading }: { message: Message; isLoading: boolean }) {
-  if (message.sender === "user") {
-    return <p className="text-sm">{message.content}</p>
-  }
-
-  if (message.content === "" && isLoading) {
-    return <TypingIndicator />
-  }
-
-  return (
-    <div className="text-sm prose prose-sm max-w-none prose-a:text-blue-600 prose-a:underline">
-      <ReactMarkdown>{message.content}</ReactMarkdown>
-    </div>
-  )
-}
-
 export default function HugoPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      content:
-        "Hi! I'm Hugo, your AI permit assistant. I can help you find and understand what permits you need for your project. What are you planning to do?",
-      sender: "hugo",
-      timestamp: new Date(),
-    },
-  ])
-  const [inputValue, setInputValue] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      sender: "user",
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    const currentInput = inputValue
-    setInputValue("")
-    setIsLoading(true)
-
-    const hugoMessageId = (Date.now() + 1).toString()
-    setMessages((prev) => [...prev, { id: hugoMessageId, content: "", sender: "hugo", timestamp: new Date() }])
-
+  const [messages, setMessages] = useState<Message[]>([greeting])
+  const [input, setInput] = useState("")
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState("")
+  const [ready, setReady] = useState(false)
+  const bottom = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  useEffect(() => {
     try {
-      const response = await fetch("/api/chat", {
+      const saved = JSON.parse(sessionStorage.getItem("civic-chat-v1") || "null")
+      if (Array.isArray(saved) && saved.length && saved.every((m) => typeof m.content === "string"))
+        setMessages(saved)
+    } catch {}
+    setReady(true)
+  }, [])
+  useEffect(() => {
+    if (ready) {
+      try {
+        sessionStorage.setItem("civic-chat-v1", JSON.stringify(messages.slice(-21)))
+      } catch {}
+      bottom.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages, ready, busy])
+  async function send(value = input) {
+    if (!value.trim() || busy) return
+    const previous = messages.filter((m) => m.id !== "welcome").slice(-18)
+    setMessages((m) => [...m, { id: crypto.randomUUID(), sender: "user", content: value }])
+    setInput("")
+    setBusy(true)
+    setError("")
+    try {
+      const reply = await api<Reply>("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: currentInput, history: messages.slice(1) }),
+        body: JSON.stringify({
+          message: value,
+          history: previous.map(({ sender, content }) => ({ sender, content })),
+        }),
       })
-
-      if (!response.ok) {
-        const errorMessage = await response.text()
-        throw new Error(getReadableErrorMessage(errorMessage))
-      }
-
-      const reader = response.body?.getReader()
-      const decoder = new TextDecoder()
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          const chunk = decoder.decode(value)
-          setMessages((prev) =>
-            prev.map((msg) => (msg.id === hugoMessageId ? { ...msg, content: msg.content + chunk } : msg))
-          )
-        }
-      }
-    } catch (error) {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === hugoMessageId
-            ? {
-                ...msg,
-                content: error instanceof Error ? error.message : DEFAULT_ERROR_MESSAGE,
-              }
-            : msg
-        )
-      )
+      setMessages((m) => [
+        ...m,
+        { id: crypto.randomUUID(), sender: "hugo", content: reply.answer, reply },
+      ])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Please try again.")
+      setInput(value)
     } finally {
-      setIsLoading(false)
+      setBusy(false)
     }
   }
-
+  function choose(serviceId: string, summary: string, permitName: string) {
+    saveDraft({
+      serviceId,
+      objective: `${summary}\n\nRequested support: ${permitName}`,
+      projectAddress: "",
+      requestKey: crypto.randomUUID(),
+    })
+    router.push(`/services?service=${serviceId}`)
+  }
   return (
-    <div className="h-full flex flex-col">
-      <div className="bg-white border-b border-gray-200 p-6 pl-16 md:pl-6">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden">
-            <Image src="/images/hugo.jpg" alt="Hugo" width={40} height={40} className="w-full h-full object-cover" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Hugo</h1>
-            <p className="text-gray-600">Your AI Permit Assistant</p>
-          </div>
+    <div className="flex h-full flex-col bg-[#f7f8fa]">
+      <header className="border-b bg-white px-6 py-5 pl-16 md:pl-8 flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[.18em] text-blue-700 font-semibold">
+            Civic Easy concierge
+          </p>
+          <h1 className="text-xl font-semibold mt-1">A little less paperwork. A lot more done.</h1>
         </div>
-      </div>
-
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-4xl mx-auto space-y-4">
-          {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-              <div className={`flex items-start space-x-3 max-w-2xl ${message.sender === "user" ? "flex-row-reverse space-x-reverse" : ""}`}>
-                <div className={`p-2 rounded-full ${message.sender === "user" ? "bg-gray-100" : "bg-blue-100"}`}>
-                  {message.sender === "user" ? <User className="h-4 w-4 text-gray-600" /> : <Bot className="h-4 w-4 text-blue-600" />}
-                </div>
-                <Card className={message.sender === "user" ? "bg-blue-600 text-white" : "bg-white"}>
-                  <CardContent className="p-4">
-                    <MessageContent message={message} isLoading={isLoading} />
-                    <p className={`text-xs mt-2 ${message.sender === "user" ? "text-blue-100" : "text-gray-500"}`}>
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
-                  </CardContent>
-                </Card>
+        <button
+          aria-label="Start a new conversation"
+          title="New conversation"
+          disabled={busy}
+          onClick={() => {
+            setMessages([greeting])
+            setError("")
+          }}
+          className="rounded-full p-2 border hover:bg-gray-50"
+        >
+          <Plus size={18} />
+        </button>
+      </header>
+      <div className="flex-1 overflow-y-auto px-4 py-8 md:px-8">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {messages.length === 1 && (
+            <div className="pb-5">
+              <div className="inline-flex rounded-full bg-blue-50 text-blue-800 text-xs font-medium px-3 py-1.5 mb-4">
+                A real person takes it from here
               </div>
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-900">
+                What would you like
+                <br />
+                taken care of?
+              </h2>
+              <p className="mt-3 text-slate-500">
+                $99 per permit + government fees. Research, filing, and follow-up included.
+              </p>
+            </div>
+          )}
+          {messages.map((m) => (
+            <div key={m.id} className={m.sender === "user" ? "ml-auto max-w-xl" : "max-w-2xl"}>
+              <p className="mb-2 text-xs font-semibold text-slate-500">
+                {m.sender === "user" ? "You" : "Hugo · Civic Easy"}
+              </p>
+              <div
+                className={`rounded-2xl p-5 whitespace-pre-wrap text-sm leading-7 ${m.sender === "user" ? "bg-blue-700 text-white" : "bg-white border border-slate-200"}`}
+              >
+                {m.content}
+              </div>
+              {m.reply?.recommendations.map((r, i) => (
+                <div
+                  key={`${r.serviceId}-${i}`}
+                  className="mt-3 rounded-2xl border border-blue-200 bg-white overflow-hidden"
+                >
+                  <div className="p-5">
+                    <p className="text-xs uppercase tracking-wider text-blue-700 font-semibold">
+                      Suggested permit support · subject to review
+                    </p>
+                    <h3 className="font-semibold text-lg mt-2">{r.permitName}</h3>
+                    <p className="text-sm text-slate-600 mt-2">{r.reason}</p>
+                    <div className="flex gap-2 items-center text-sm mt-4 text-slate-600">
+                      <Check size={16} className="text-blue-600" />
+                      We research, prepare, file, and follow up.
+                    </div>
+                  </div>
+                  <div className="border-t bg-blue-50/50 p-4 flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm">
+                      <strong>
+                        {r.service.amount === null
+                          ? "Price to be confirmed"
+                          : formatMoney(r.service.amount)}
+                      </strong>{" "}
+                      / permit + government fees
+                    </span>
+                    <button
+                      onClick={() => choose(r.serviceId, m.reply!.summary, r.permitName)}
+                      className="rounded-lg bg-blue-700 text-white px-4 py-2 text-sm font-medium flex items-center gap-2"
+                    >
+                      Have Civic Easy handle this <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {!!m.reply?.resources.length && (
+                <details className="mt-3 text-sm text-slate-500">
+                  <summary className="cursor-pointer">Official resources & locations</summary>
+                  <div className="mt-2 space-y-3">
+                    {m.reply.resources.map((r) => (
+                      <div key={r.id} className="rounded-xl border p-4 bg-white">
+                        <a
+                          href={r.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-blue-700 font-medium inline-flex gap-2 items-center"
+                        >
+                          {r.name}
+                          <ExternalLink size={13} />
+                        </a>
+                        <p className="mt-1">{r.description}</p>
+                        {r.address && (
+                          <a
+                            href={r.locationUrl!}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex gap-2 mt-2 text-slate-700"
+                          >
+                            <MapPin size={15} />
+                            {r.address}
+                          </a>
+                        )}
+                        <p className="text-xs mt-2">Source checked {r.verifiedAt}</p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
             </div>
           ))}
+          {busy && (
+            <div role="status" className="text-sm text-slate-500 flex gap-2 items-center">
+              <Loader2 className="animate-spin" size={16} />
+              Hugo is considering your project…
+            </div>
+          )}
+          {error && (
+            <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+              {error}{" "}
+              <Link href="/services" className="underline">
+                Browse services
+              </Link>
+            </p>
+          )}
+          <div ref={bottom} />
         </div>
       </div>
-
-      <div className="bg-white border-t border-gray-200 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex space-x-4">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask Hugo about permits you need..."
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-              className="flex-1"
+      <div className="border-t bg-white p-4 md:p-6">
+        <div className="max-w-3xl mx-auto">
+          {messages.length === 1 && (
+            <div className="flex gap-2 flex-wrap mb-4">
+              {[
+                "Open a café in San Francisco",
+                "Add outdoor seating",
+                "Renovate my kitchen in SF",
+              ].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => send(s)}
+                  disabled={busy}
+                  className="border rounded-full px-3 py-2 text-xs text-slate-600 hover:border-blue-400"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              send()
+            }}
+            className="flex gap-3"
+          >
+            <input
+              aria-label="Tell Hugo about your project"
+              value={input}
+              maxLength={2000}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="I want to get a permit for…"
+              className="flex-1 min-w-0 rounded-xl border bg-slate-50 px-4 py-3 text-sm focus:outline-blue-500"
             />
-            <Button onClick={handleSendMessage} className="px-6" disabled={isLoading}>
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </Button>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => setInputValue("Start a Business")}>
-              Start a Business
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputValue("Get Permit for Street Closure")}>
-              Get Permit for Street Closure
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setInputValue("Renovate an Old House")}>
-              Renovate an Old House
-            </Button>
-          </div>
+            <button
+              aria-label="Send message"
+              disabled={busy || !input.trim()}
+              className="rounded-xl bg-blue-700 text-white px-4 disabled:opacity-40"
+            >
+              <Send size={18} />
+            </button>
+          </form>
+          <p className="text-xs text-slate-400 text-center mt-3">
+            You describe the goal. We take care of the next steps.
+          </p>
         </div>
       </div>
     </div>

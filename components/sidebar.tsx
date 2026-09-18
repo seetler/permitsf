@@ -4,16 +4,15 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
-import { Bot, FileText, User, Menu, LogOut, X, AlertCircle } from "lucide-react"
-import Image from "next/image"
+import { useEffect, useState } from "react"
+import { Bot, FileText, User, Menu, LogOut, X, Briefcase, ShoppingBag } from "lucide-react"
 import { useUser, useClerk } from "@clerk/nextjs"
 
 const navigation = [
   { name: "Hugo", href: "/hugo", icon: Bot },
-  { name: "My Permits", href: "/permits", icon: FileText },
+  { name: "Services", href: "/services", icon: ShoppingBag },
+  { name: "My Requests", href: "/requests", icon: FileText },
   { name: "My Profile", href: "/profile", icon: User },
-  //{ name: "Disclaimer", href: "/disclaimer", icon: AlertCircle },
 ]
 
 export function Sidebar() {
@@ -22,17 +21,37 @@ export function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const { user, isSignedIn } = useUser()
   const { signOut } = useClerk()
+  const [isStaff, setIsStaff] = useState(false)
+  useEffect(() => {
+    let active = true
+    setIsStaff(false)
+    if (user)
+      fetch("/api/staff")
+        .then((r) => r.json())
+        .then((d) => {
+          if (active) setIsStaff(d.staff === true)
+        })
+        .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [user?.id])
+  const items = isStaff
+    ? [...navigation, { name: "Team Workspace", href: "/operations", icon: Briefcase }]
+    : navigation
 
   const getInitial = () => {
     if (user?.firstName) return user.firstName[0].toUpperCase()
     if (user?.username) return user.username[0].toUpperCase()
-    if (user?.emailAddresses?.[0]?.emailAddress) return user.emailAddresses[0].emailAddress[0].toUpperCase()
+    if (user?.emailAddresses?.[0]?.emailAddress)
+      return user.emailAddresses[0].emailAddress[0].toUpperCase()
     return "?"
   }
 
   return (
     <>
       <button
+        aria-label="Open navigation"
         onClick={() => setIsMobileOpen(true)}
         className="md:hidden fixed top-4 left-4 z-40 p-2 bg-white rounded-md shadow-md border border-gray-200"
       >
@@ -40,7 +59,10 @@ export function Sidebar() {
       </button>
 
       {isMobileOpen && (
-        <div className="md:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setIsMobileOpen(false)} />
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsMobileOpen(false)}
+        />
       )}
 
       <div
@@ -48,22 +70,32 @@ export function Sidebar() {
           "bg-white shadow-sm border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col",
           "fixed md:relative inset-y-0 left-0 z-50",
           isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          isCollapsed ? "md:w-12" : "w-64"
+          isCollapsed ? "md:w-12" : "w-64",
         )}
       >
         <div className={`p-6 ${isCollapsed ? "px-2 py-3" : ""}`}>
           <div className="flex items-center justify-between">
             {!isCollapsed && (
               <div className="flex items-center space-x-2">
-                <Image src="/images/hugo.jpg" alt="SF Logo" width={32} height={32} className="rounded-full" />
+                <span
+                  aria-hidden="true"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-700 text-xs font-bold text-white"
+                >
+                  CE
+                </span>
                 <h1 className="text-xl font-bold text-gray-900">Civic Easy</h1>
               </div>
             )}
             <button
+              aria-label="Toggle navigation"
               onClick={() => (isMobileOpen ? setIsMobileOpen(false) : setIsCollapsed(!isCollapsed))}
               className={`p-1 rounded-md hover:bg-gray-100 transition-colors ${isCollapsed ? "mx-auto" : ""}`}
             >
-              {isMobileOpen ? <X className="h-5 w-5 text-gray-600" /> : <Menu className="h-5 w-5 text-gray-600" />}
+              {isMobileOpen ? (
+                <X className="h-5 w-5 text-gray-600" />
+              ) : (
+                <Menu className="h-5 w-5 text-gray-600" />
+              )}
             </button>
           </div>
         </div>
@@ -71,8 +103,8 @@ export function Sidebar() {
         {(!isCollapsed || isMobileOpen) && (
           <nav className="mt-8 px-4 flex-1">
             <ul className="space-y-2">
-              {navigation.map((item) => {
-                const isActive = pathname === item.href
+              {items.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
                 return (
                   <li key={item.name}>
                     <Link
@@ -82,7 +114,7 @@ export function Sidebar() {
                         "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                         isActive
                           ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                       )}
                     >
                       <item.icon className="mr-3 h-5 w-5" />
@@ -106,7 +138,7 @@ export function Sidebar() {
                     "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
                     pathname === "/profile"
                       ? "bg-blue-50 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900",
                   )}
                 >
                   <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center mr-3 text-sm font-semibold">

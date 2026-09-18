@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { User, Mail, Phone, MapPin, Building, Save, Loader2, Check, Crown, Sparkles } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { User, Mail, Phone, MapPin, Building, Save, Loader2, Check } from "lucide-react"
 
 interface ProfileData {
   firstName: string
@@ -47,7 +46,6 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [isLoadingPortal, setIsLoadingPortal] = useState(false)
-  const [isLoadingCheckout, setIsLoadingCheckout] = useState(false)
 
   const isPaid = user?.publicMetadata?.subscriptionTier === "paid"
 
@@ -63,21 +61,6 @@ export default function ProfilePage() {
       console.error("Failed to open portal:", error)
     } finally {
       setIsLoadingPortal(false)
-    }
-  }
-
-  const handleUpgrade = async () => {
-    setIsLoadingCheckout(true)
-    try {
-      const response = await fetch("/api/stripe/checkout", { method: "POST" })
-      const data = await response.json()
-      if (data.url) {
-        window.location.href = data.url
-      }
-    } catch (error) {
-      console.error("Failed to create checkout:", error)
-    } finally {
-      setIsLoadingCheckout(false)
     }
   }
 
@@ -112,42 +95,31 @@ export default function ProfilePage() {
     <div className="p-6 pt-16 md:pt-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-        <p className="text-gray-600 mt-2">Manage your personal and business information</p>
+        <p className="text-gray-600 mt-2">
+          Your contact details help us take care of your requests.
+        </p>
       </div>
 
       <div className="max-w-4xl space-y-6">
-        <Card className={isPaid ? "border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50" : ""}>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                {isPaid ? <Crown className="h-5 w-5 text-amber-500" /> : <Sparkles className="h-5 w-5 text-gray-400" />}
-                <span>Subscription</span>
-              </div>
-              <Badge className={isPaid ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-600"}>
-                {isPaid ? "Premium" : "Free"}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isPaid ? (
-              <div className="flex items-center justify-between">
-                <p className="text-gray-600">You have full access to all features including permits management.</p>
-                <Button variant="outline" onClick={handleManageSubscription} disabled={isLoadingPortal}>
-                  {isLoadingPortal ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Manage Subscription
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <p className="text-gray-600">Upgrade to Premium for full access to permits management.</p>
-                <Button onClick={handleUpgrade} disabled={isLoadingCheckout}>
-                  {isLoadingCheckout ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Crown className="h-4 w-4 mr-2" />}
-                  Upgrade to Premium
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {isPaid && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Existing subscription</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600 mb-4">
+                Manage your existing plan. New permit services are purchased individually.
+              </p>
+              <Button
+                variant="outline"
+                onClick={handleManageSubscription}
+                disabled={isLoadingPortal}
+              >
+                Manage subscription
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -160,11 +132,19 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="firstName">First Name</Label>
-                <Input id="firstName" value={formData.firstName} onChange={(e) => handleInputChange("firstName", e.target.value)} />
+                <Input
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange("firstName", e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="lastName">Last Name</Label>
-                <Input id="lastName" value={formData.lastName} onChange={(e) => handleInputChange("lastName", e.target.value)} />
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange("lastName", e.target.value)}
+                />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -173,14 +153,23 @@ export default function ProfilePage() {
                   <Mail className="h-4 w-4" />
                   <span>Email</span>
                 </Label>
-                <Input id="email" type="email" value={formData.email} onChange={(e) => handleInputChange("email", e.target.value)} />
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="phone" className="flex items-center space-x-1">
                   <Phone className="h-4 w-4" />
                   <span>Phone</span>
                 </Label>
-                <Input id="phone" value={formData.phone} onChange={(e) => handleInputChange("phone", e.target.value)} />
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                />
               </div>
             </div>
           </CardContent>
@@ -196,20 +185,36 @@ export default function ProfilePage() {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="address">Street Address</Label>
-              <Input id="address" value={formData.address} onChange={(e) => handleInputChange("address", e.target.value)} />
+              <Input
+                id="address"
+                value={formData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="city">City</Label>
-                <Input id="city" value={formData.city} onChange={(e) => handleInputChange("city", e.target.value)} />
+                <Input
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="state">State</Label>
-                <Input id="state" value={formData.state} onChange={(e) => handleInputChange("state", e.target.value)} />
+                <Input
+                  id="state"
+                  value={formData.state}
+                  onChange={(e) => handleInputChange("state", e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="zipCode">ZIP Code</Label>
-                <Input id="zipCode" value={formData.zipCode} onChange={(e) => handleInputChange("zipCode", e.target.value)} />
+                <Input
+                  id="zipCode"
+                  value={formData.zipCode}
+                  onChange={(e) => handleInputChange("zipCode", e.target.value)}
+                />
               </div>
             </div>
           </CardContent>
@@ -226,20 +231,38 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="businessName">Business Name</Label>
-                <Input id="businessName" value={formData.businessName} onChange={(e) => handleInputChange("businessName", e.target.value)} />
+                <Input
+                  id="businessName"
+                  value={formData.businessName}
+                  onChange={(e) => handleInputChange("businessName", e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="businessType">Business Type</Label>
-                <Input id="businessType" value={formData.businessType} onChange={(e) => handleInputChange("businessType", e.target.value)} />
+                <Input
+                  id="businessType"
+                  value={formData.businessType}
+                  onChange={(e) => handleInputChange("businessType", e.target.value)}
+                />
               </div>
             </div>
             <div>
               <Label htmlFor="licenseNumber">License Number</Label>
-              <Input id="licenseNumber" value={formData.licenseNumber} onChange={(e) => handleInputChange("licenseNumber", e.target.value)} />
+              <Input
+                id="licenseNumber"
+                value={formData.licenseNumber}
+                onChange={(e) => handleInputChange("licenseNumber", e.target.value)}
+              />
             </div>
             <div>
               <Label htmlFor="notes">Additional Notes</Label>
-              <Textarea id="notes" value={formData.notes} onChange={(e) => handleInputChange("notes", e.target.value)} rows={4} placeholder="Any additional information about your business or projects..." />
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange("notes", e.target.value)}
+                rows={4}
+                placeholder="Any additional information about your business or projects..."
+              />
             </div>
           </CardContent>
         </Card>
