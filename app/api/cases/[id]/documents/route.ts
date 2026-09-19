@@ -1,9 +1,12 @@
+import { scheduleEmailDelivery } from "@/lib/server/email"
 import { randomUUID } from "node:crypto"
 import { put, del } from "@vercel/blob"
 import { actor, errorResponse, HttpError, uuid } from "@/lib/server/http"
 import { database, transaction } from "@/lib/server/db"
 import { getCase, addEvent, enqueue } from "@/lib/server/cases"
 import { appUrl, notificationEmail } from "@/lib/server/config"
+export const maxDuration = 60
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await actor()
@@ -55,6 +58,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       await del(blob.pathname).catch(() => {})
       throw error
     }
+    scheduleEmailDelivery()
     return Response.json({ id: documentId })
   } catch (error) {
     return errorResponse(error)

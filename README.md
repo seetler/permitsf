@@ -34,7 +34,7 @@ Stack: Next.js, TypeScript, Clerk, Stripe Checkout, PostgreSQL, private Vercel B
 6. Configure Resend with a verified `EMAIL_FROM`. New-case and client-reply notifications default to **info@evolvedigitallyllc.com**. Set `CIVIC_EASY_NOTIFY_EMAIL` to change the recipient.
 7. Connect a **private** Vercel Blob store and set `BLOB_READ_WRITE_TOKEN`. Documents are downloaded through an authenticated route that checks case ownership/staff access. Files are restricted to PDFs, JPEGs, and PNGs up to 3 MB; they are always served as downloads.
 8. Set `NEXT_PUBLIC_APP_URL=https://civiceasy.com` in production and a strong `CRON_SECRET`.
-9. Enable the scheduler. `vercel.json` requests a once-per-minute run of `/api/jobs`; this cadence requires a Vercel plan supporting it. Alternatively use your scheduler to call that endpoint every minute with `Authorization: Bearer <CRON_SECRET>` and remove the Vercel cron declaration. Email is queued, not sent in request handlers.
+9. Enable the scheduler. `vercel.json` schedules `/api/jobs` once daily at 16:00 UTC, compatible with Vercel Hobby. Purchases and case updates trigger background email delivery immediately after their database transaction commits, using Next.js `after()`. The daily job handles reminders and retries. For more frequent retries, use a supported Vercel plan or an external scheduler calling this endpoint with `Authorization: Bearer <CRON_SECRET>`.
 10. Run `npm run dev`.
 
 Checkout stays disabled until database, Stripe, staff assignment, email, app URL, and scheduler credentials are configured. This is a configuration check, not a connectivity check: complete the prelaunch test below before accepting purchases. Uploads show a clear unavailable message until private storage is connected. No production resources are provisioned by the migration.
@@ -56,7 +56,7 @@ New subscription checkout is retired. Existing subscription portal management an
 
 ## Notifications and recovery
 
-The outbox worker claims up to five messages per run with a lease, uses the provider's idempotency key, and retries failures with backoff. After eight failed attempts, a message stays in `outbox` with `failed_at` for operator review. Inspect delivery failures with:
+The outbox worker claims up to five messages per run with a lease, uses the provider's idempotency key, and records failed deliveries with backoff. It runs after successful purchases, messages, document uploads, and work-plan updates, as well as on the daily schedule. On a quiet site, a failed delivery or a backlog beyond five messages can wait until the next daily run. Use a more frequent external scheduler or supported Vercel plan if that delay is unacceptable. After eight failed attempts, a message stays in `outbox` with `failed_at` for operator review. Inspect delivery failures with:
 
 ```sql
 SELECT id, recipient, subject, attempts, failed_at FROM outbox

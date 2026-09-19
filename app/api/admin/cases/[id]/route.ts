@@ -1,6 +1,9 @@
+import { scheduleEmailDelivery } from "@/lib/server/email"
 import { staffActor, errorResponse, jsonBody, textField, uuid, HttpError } from "@/lib/server/http"
 import { transaction } from "@/lib/server/db"
 import { updateCase } from "@/lib/server/cases"
+export const maxDuration = 60
+
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await staffActor()
@@ -17,6 +20,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         version: data.version,
       }),
     )
+    scheduleEmailDelivery()
     return Response.json({ ok: true })
   } catch (error) {
     return errorResponse(error)

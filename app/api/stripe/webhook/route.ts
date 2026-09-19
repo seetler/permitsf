@@ -1,8 +1,11 @@
+import { scheduleEmailDelivery } from "@/lib/server/email"
 import { clerkClient } from "@clerk/nextjs/server"
 import Stripe from "stripe"
 import { transaction } from "@/lib/server/db"
 import { addEvent, enqueue, fulfillOrder } from "@/lib/server/cases"
 import { appUrl, notificationEmail } from "@/lib/server/config"
+export const maxDuration = 60
+
 export async function POST(request: Request) {
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET)
     return Response.json({ error: "Webhook not configured" }, { status: 503 })
@@ -110,6 +113,7 @@ export async function POST(request: Request) {
           )
         })
     }
+    scheduleEmailDelivery()
     return Response.json({ received: true })
   } catch (error) {
     console.error(

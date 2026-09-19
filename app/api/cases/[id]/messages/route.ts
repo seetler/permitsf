@@ -1,6 +1,9 @@
+import { scheduleEmailDelivery } from "@/lib/server/email"
 import { actor, errorResponse, HttpError, jsonBody, textField, uuid } from "@/lib/server/http"
 import { transaction } from "@/lib/server/db"
 import { postMessage } from "@/lib/server/cases"
+export const maxDuration = 60
+
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await actor()
@@ -9,6 +12,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (!["message", "note", "request"].includes(data.kind))
       throw new HttpError(400, "Invalid message type.")
     await transaction((db) => postMessage(db, id, user, textField(data.body, "message"), data.kind))
+    scheduleEmailDelivery()
     return Response.json({ ok: true })
   } catch (error) {
     return errorResponse(error)
